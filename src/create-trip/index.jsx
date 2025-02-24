@@ -12,22 +12,26 @@ import {
   SelectTravelsList,
 } from "@/constants/options";
 import { chatSession } from "@/service/AIModel";
+import { db } from "@/service/firebaseConfig";
 import { useGoogleLogin } from "@react-oauth/google";
-import { useEffect, useState } from "react";
-import GooglePlacesAutocomplete from "react-google-places-autocomplete";
-import { FcGoogle } from "react-icons/fc";
-import { toast } from "sonner";
 import axios from "axios";
 import { doc, setDoc } from "firebase/firestore";
-import { db } from "@/service/firebaseConfig";
+import { useEffect, useState } from "react";
+import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { useNavigate} from "react-router-dom";
+import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 function CreateTrip() {
   const [place, setPlace] = useState(null);
+
   const [formData, setFormData] = useState({});
+
   const [openDailog, setOpenDailog] = useState(false);
+
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate()
 
   const handleInputChange = (name, value) => {
@@ -67,48 +71,43 @@ function CreateTrip() {
       return;
     }
 
-    setLoading(true); // Start loading
-
-    try {
-      const FINAL_PROMPT = AI_PROMPT.replace(
-        "{location}",
-        formData?.location?.label
-      )
-        .replace("{totalDays}", formData?.noOfdays)
-        .replace("{traveler}", formData?.traveler)
-        .replace("{budget}", formData?.budget)
-        .replace("{totalDays}", formData?.noOfdays);
-
-      const result = await chatSession.sendMessage(FINAL_PROMPT);
-      console.log("__", result?.response?.text());
-
-      await SaveAiTrip(result?.response?.text());
-    } catch (error) {
-      console.error("Error generating trip:", error);
-      toast("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const SaveAiTrip = async (TripData) => {
     setLoading(true);
 
-    const user = JSON.parse(localStorage.getItem("user"));
-    
-    const docId = Date.now().toString();
+    const FINAL_PROMPT = AI_PROMPT.replace(
+      "{location}",
+      formData?.location?.label
+    )
+      .replace("{totalDays}", formData?.noOfdays)
+      .replace("{traveler}", formData?.traveler)
+      .replace("{budget}", formData?.budget)
+      .replace("{totalDays}", formData?.noOfdays);
 
-    await setDoc(doc(db, "AITrips", docId), {
-      userSelection: formData,
-      TripData: JSON.parse(TripData),
-      userEmail: user?.email,
-      id: docId,
-    });
+    const result = await chatSession.sendMessage(FINAL_PROMPT);
+
+    console.log("__", result?.response?.text());
+
+    await SaveAiTrip(result?.response?.text());
+
     setLoading(false);
-    navigate('/view-trip' + docId)
   };
 
+  const SaveAiTrip = async(TripData) => {
+    setLoading(true);
+    const user = JSON.parse(localStorage.getItem('user'));
+    const docId = Date.now().toString()
+
+    await setDoc(doc(db, "AITrips", docId), {
+      userSelection:formData,
+      tripData:JSON.parse(TripData),
+      userEmail:user?.email,
+      id:docId
+    });
+    setLoading(false);
+    navigate(`/view-trip/${docId}`);
+  }
+
   const GetUserProfile = async (tokenInfo) => {
+    
     try {
       const resp = await axios.get(
         `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${tokenInfo?.access_token}`,

@@ -13,6 +13,8 @@ function Hero() {
       <p className="text-xl text-gray-500 text-center p-8">Your personal trip planner and travel curator, creating custom itineraries tailored to your interests and budget</p>
 
       <Link to={'/create-trip'}><Button>Get Started,Its's Free</Button></Link>
+
+      <img src="/landing.png" className="mt-10 w-[800px]" />
     </div>
   );
 }
