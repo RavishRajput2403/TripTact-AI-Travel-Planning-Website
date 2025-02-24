@@ -9,6 +9,11 @@ import { Toaster } from "./components/ui/sonner";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Viewtrip from './view-trip/[tripId]/index.jsx'
 import MyTrips from "./my-trips";
+import { inject } from "@vercel/analytics";
+import { injectSpeedInsights } from "@vercel/speed-insights/*";
+
+inject();
+injectSpeedInsights();
 
 const router = createBrowserRouter([
   {
